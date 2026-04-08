@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -256,8 +255,14 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      font-size: 0.9rem;
     }
     .btn:hover { background: var(--accent-hover); }
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
 
     .modal-overlay {
       position: fixed;
@@ -319,6 +324,29 @@
     }
     .modal .link:hover { text-decoration: underline; }
 
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      justify-content: space-between;
+    }
+    .modal-action-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    .modal-action-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .close-btn {
       position: absolute;
       top: 1rem; right: 1rem;
@@ -330,6 +358,58 @@
       line-height: 1;
     }
     .close-btn:hover { color: var(--accent); }
+
+    .iframe-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #0a0f1c;
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+    }
+    .iframe-overlay.active {
+      display: flex;
+    }
+    .iframe-header {
+      background: var(--card-bg);
+      padding: 0.8rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .iframe-header h3 {
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+    .iframe-header button {
+      background: var(--border);
+      border: none;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .iframe-header button:hover {
+      background: var(--accent);
+      color: #0f172a;
+    }
+    .iframe-container {
+      flex: 1;
+      position: relative;
+    }
+    .iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .iframe-error {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      color: #ef4444;
+    }
 
     .tip-box {
       background: #111827;
@@ -372,6 +452,7 @@
       .filters { flex-direction: column; }
       .filter-group { width: 100%; justify-content: center; }
       .grid { grid-template-columns: 1fr; }
+      .modal-actions { flex-direction: column; }
     }
   </style>
 </head>
@@ -379,7 +460,7 @@
 
   <header>
     <h1>🤖 Directorio de IAs</h1>
-    <p>Herramientas de inteligencia artificial organizadas por modelo de acceso: <strong>Gratis</strong> • <strong>Trial</strong> • <strong>Pagas</strong>. Información actualizada a 2024-2026.</p>
+    <p>Herramientas de inteligencia artificial organizadas por modelo de acceso: <strong>Gratis</strong> • <strong>Trial</strong> • <strong>Pagas</strong>. Información actualizada a 2026.</p>
     
     <div class="legend">
       <div class="legend-item"><span class="legend-dot free"></span> 100% Gratis</div>
@@ -407,11 +488,12 @@
         <button class="filter-btn active" data-filter="category" data-value="all">Todas</button>
         <button class="filter-btn" data-filter="category" data-value="general">🌐 Generales</button>
         <button class="filter-btn" data-filter="category" data-value="programacion">💻 Code</button>
-        <button class="filter-btn" data-filter="category" data-value="imagenes-video">🎨 Imágenes</button>
-        <button class="filter-btn" data-filter="category" data-value="audio-musica">🎵 Audio</button>
+        <button class="filter-btn" data-filter="category" data-value="imagenes-video">🎨 Imágenes/Video</button>
+        <button class="filter-btn" data-filter="category" data-value="audio-musica">🎵 Audio/Música</button>
         <button class="filter-btn" data-filter="category" data-value="escritura">✍️ Escritura</button>
         <button class="filter-btn" data-filter="category" data-value="productividad">⚡ Productividad</button>
         <button class="filter-btn" data-filter="category" data-value="personajes-3d">🎭 3D/Personajes</button>
+        <button class="filter-btn" data-filter="category" data-value="agentes">🤖 Agentes</button>
       </div>
       
       <button class="clear-filters" id="clearFilters">🔄 Limpiar filtros</button>
@@ -422,8 +504,9 @@
 
   <main id="app"></main>
 
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal">
       <button class="close-btn" aria-label="Cerrar modal">&times;</button>
       <h2 id="modalTitle"></h2>
       <div class="tags">
@@ -432,7 +515,27 @@
       </div>
       <p id="modalDesc"></p>
       <div class="limits" id="modalLimits"></div>
+      <div class="modal-actions">
+        <button class="modal-action-btn" id="openNewTab">🔗 Nueva pestaña</button>
+        <button class="modal-action-btn" id="openNewWindow">🪟 Nueva ventana</button>
+        <button class="modal-action-btn" id="openImmersive">📥 Vista inmersiva</button>
+      </div>
       <a href="#" target="_blank" rel="noopener" class="link" id="modalLink">🌐 Visitar sitio oficial</a>
+    </div>
+  </div>
+
+  <!-- Iframe inmersivo -->
+  <div id="iframeOverlay" class="iframe-overlay">
+    <div class="iframe-header">
+      <h3 id="iframeTitle">Cargando herramienta...</h3>
+      <button id="closeIframe">✖ Cerrar</button>
+    </div>
+    <div class="iframe-container">
+      <iframe id="immersiveIframe" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads"></iframe>
+      <div id="iframeError" class="iframe-error">
+        ⚠️ No se pudo cargar la página. El sitio puede bloquear la visualización en iframes por seguridad.<br>
+        Prueba a abrirlo en una nueva pestaña o ventana.
+      </div>
     </div>
   </div>
 
@@ -457,7 +560,7 @@
 
   <script>
     const aiTools = [
-      // ====== 🟢 GRATIS ======
+      // ========== 🟢 GRATIS (ya existentes) ==========
       { id: "chatgpt", name: "ChatGPT", category: "general", priceModel: "free", short: "Asistente conversacional líder de OpenAI.", full: "Modelo multimodal capaz de generar texto, analizar documentos, escribir código y crear imágenes. La versión gratuita usa GPT-4o mini.", limits: "Límite de mensajes variable, acceso a DALL-E con límites diarios.", url: "https://chat.openai.com" },
       { id: "gemini", name: "Gemini (Google)", category: "general", priceModel: "free", short: "IA multimodal integrada en el ecosistema Google.", full: "Fuerte en razonamiento, búsqueda web en tiempo real, integración con Drive/Gmail y análisis de imágenes.", limits: "Uso gratuito generoso, colas en horas pico.", url: "https://gemini.google.com" },
       { id: "copilot", name: "Microsoft Copilot", category: "general", priceModel: "free", short: "Asistente con GPT-4 y DALL-E 3 integrado.", full: "Combina chat, generación de imágenes, búsqueda web y resumen de documentos.", limits: "~30 turnos/conversación, imágenes con marca de agua.", url: "https://copilot.microsoft.com" },
@@ -466,35 +569,56 @@
       { id: "meta-ai", name: "Meta AI (Llama)", category: "general", priceModel: "free", short: "IA de Meta en WhatsApp, Instagram y web.", full: "Basada en Llama 3, chat y generación de imágenes integrada.", limits: "Disponibilidad por región, límites en imágenes.", url: "https://www.meta.ai" },
       { id: "mistral", name: "Mistral AI", category: "general", priceModel: "free", short: "Modelo europeo open-source eficiente.", full: "Razonamiento lógico, programación y generación de texto.", limits: "Acceso gratuito con registro, límites por hora.", url: "https://chat.mistral.ai" },
       { id: "deepseek", name: "DeepSeek", category: "general", priceModel: "free", short: "IA open-source para programación.", full: "Modelo eficiente especializado en código y razonamiento técnico.", limits: "Gratuito para uso personal, API generosa.", url: "https://deepseek.com" },
-      { id: "qwen", name: "Qwen (Alibaba)", category: "general", priceModel: "free", short: "Modelo de lenguaje avanzado de Alibaba.", full: "Qwen 2.5 es una familia de modelos con capacidades multimodales, razonamiento, programación y contexto de hasta 1M tokens. Versión gratuita accesible vía web y app.", limits: "Uso gratuito con límites diarios de mensajes. API con costo adicional.", url: "https://chat.qwen.ai" },
-      { id: "dalle", name: "DALL·E (OpenAI)", category: "imagenes-video", priceModel: "free", short: "Generación de imágenes hiperrealistas.", full: "Crea imágenes a partir de texto con calidad profesional. Integrado en ChatGPT o vía API. Ideal para diseño, marketing y arte conceptual.", limits: "✅ Créditos gratuitos mensuales (15-50). Usuarios ChatGPT free pueden generar imágenes. API con costo por imagen (~$0.016-0.02).", url: "https://openai.com/dall-e" },
-      { id: "synthesia", name: "Synthesia", category: "imagenes-video", priceModel: "free", short: "Videos con avatares IA y voces naturales.", full: "Crea videos profesionales con avatares generados por IA en múltiples idiomas. Perfecto para presentaciones empresariales, training y marketing.", limits: "✅ Plan Free: 3 min/mes, 1 export con marca de agua. Planes pagos desde $18-20/mes para uso profesional.", url: "https://www.synthesia.io" },
-      { id: "leonardo", name: "Leonardo AI", category: "imagenes-video", priceModel: "free", short: "Generador de imágenes artísticas.", full: "Basado en Stable Diffusion, control avanzado de estilos y resolución.", limits: "~150 créditos/día renovables.", url: "https://leonardo.ai" },
+      { id: "qwen", name: "Qwen (Alibaba)", category: "general", priceModel: "free", short: "Modelo de lenguaje avanzado de Alibaba.", full: "Qwen 2.5 es una familia de modelos con capacidades multimodales, razonamiento, programación y contexto de hasta 1M tokens.", limits: "Uso gratuito con límites diarios de mensajes.", url: "https://chat.qwen.ai" },
+      
+      // ========== 🟢 GRATIS (NUEVAS DE LA INVESTIGACIÓN) ==========
+      { id: "you", name: "You.com", category: "general", priceModel: "free", short: "Buscador con chat IA integrado (GPT-4, Claude, Llama).", full: "Combina búsqueda web con modelos de lenguaje avanzados. Ofrece respuestas con citas y acceso a múltiples modelos.", limits: "10 búsquedas avanzadas/día, chat ilimitado con modelos básicos.", url: "https://you.com" },
+      { id: "forefront", name: "Forefront.ai", category: "general", priceModel: "free", short: "Chat con múltiples personajes y modelos.", full: "Plataforma que permite conversar con diferentes personajes y modelos de IA, ideal para explorar distintas personalidades.", limits: "50 mensajes/día, acceso a GPT-3.5 y modelos personalizados.", url: "https://forefront.ai" },
+      { id: "huggingchat", name: "Hugging Face Chat", category: "general", priceModel: "free", short: "Chat con múltiples modelos open-source.", full: "Acceso gratuito a modelos como Llama 3, Mistral, Gemma, y más. Sin límites estrictos.", limits: "Uso gratuito, puede tener colas en horas pico.", url: "https://huggingface.co/chat" },
+      { id: "luma", name: "Luma AI (Dream Machine)", category: "imagenes-video", priceModel: "free", short: "Generador de vídeo realista desde texto/imagen.", full: "Competidor de Runway, crea vídeos cortos de alta calidad a partir de descripciones o imágenes.", limits: "30 generaciones de vídeo/mes gratis, 5 segundos cada una.", url: "https://lumalabs.ai" },
+      { id: "krea", name: "Krea.ai", category: "imagenes-video", priceModel: "free", short: "Generación y edición de imágenes en tiempo real.", full: "Suite creativa que permite generar y editar imágenes, vídeos y modelos 3D con IA.", limits: "100 créditos/día (una imagen cuesta 1 crédito).", url: "https://krea.ai" },
+      { id: "veed", name: "Veed.io (AI tools)", category: "imagenes-video", priceModel: "free", short: "Suite de edición de video con IA.", full: "Herramientas para subtitulado automático, limpieza de audio y edición básica de video.", limits: "10 min de video/mes, exportación con marca de agua.", url: "https://veed.io" },
+      { id: "otter", name: "Otter.ai", category: "productividad", priceModel: "free", short: "Transcripción de reuniones y entrevistas con IA.", full: "Transcribe conversaciones en tiempo real, identifica a los hablantes y genera resúmenes automáticos.", limits: "300 min de transcripción/mes, importación de 3 archivos.", url: "https://otter.ai" },
+      { id: "quillbot", name: "QuillBot (plan free)", category: "escritura", priceModel: "free", short: "Parafraseo, resumen y corrector gramatical.", full: "Herramienta de escritura que ayuda a parafrasear, resumir y mejorar la gramática y el estilo.", limits: "125 palabras en el parafraseador, 1200 en el resumidor, uso diario limitado.", url: "https://quillbot.com" },
+      
+      // ========== 🟢 GRATIS (HERRAMIENTAS DE PROGRAMACIÓN - NUEVAS) ==========
+      { id: "codeium", name: "Codeium", category: "programacion", priceModel: "free", short: "Autocompletado de código gratuito.", full: "Alternativa gratuita a GitHub Copilot, con autocompletado inteligente y chat de IA.", limits: "Completamente gratuito para uso individual, sin límites de uso.", url: "https://codeium.com" },
+      { id: "tabnine", name: "Tabnine", category: "programacion", priceModel: "free", short: "Autocompletado de código con IA.", full: "Asistente de código que ofrece sugerencias inteligentes en múltiples lenguajes y entornos de desarrollo.", limits: "Versión gratuita con funcionalidades básicas de autocompletado.", url: "https://www.tabnine.com" },
+      { id: "phind", name: "Phind", category: "programacion", priceModel: "free", short: "Buscador para programadores.", full: "Motor de búsqueda especializado en programación que combina búsqueda web con razonamiento técnico.", limits: "Uso ilimitado básico, con acceso a modelos avanzados limitado.", url: "https://www.phind.com" },
+      { id: "replit-ai", name: "Replit AI", category: "programacion", priceModel: "free", short: "IDE en la nube con IA.", full: "Entorno de desarrollo integrado en la nube con asistente de IA para completar código y depurar.", limits: "Plan gratuito con recursos limitados de CPU y RAM.", url: "https://replit.com/ai" },
+      { id: "cursor", name: "Cursor", category: "programacion", priceModel: "free", short: "Editor de código con IA (VS Code fork).", full: "IDE moderno con autocompletado inteligente y chat, basado en VS Code.", limits: "Plan gratuito con 2000 autocompletados/mes.", url: "https://cursor.com" },
+      { id: "windsurf", name: "Windsurf", category: "programacion", priceModel: "free", short: "IDE potenciado por IA con autocompletado ilimitado.", full: "IDE construido sobre VS Code que ofrece autocompletado de código ilimitado y gratuito.", limits: "Gratuito para siempre, con autocompletado ilimitado.", url: "https://windsurf.com" },
+      { id: "aider", name: "Aider", category: "programacion", priceModel: "free", short: "Programador por pares de IA en la terminal.", full: "Herramienta de línea de comandos que permite programar con un asistente de IA directamente en tu repositorio Git.", limits: "Open-source y gratuito, requiere tu propia clave de API.", url: "https://aider.chat" },
+      { id: "cline", name: "Cline", category: "programacion", priceModel: "free", short: "Agente de IA en VS Code.", full: "Extensión de VS Code que proporciona un agente de IA para ayudar con tareas de codificación.", limits: "Open-source y gratuito, requiere tu propia clave de API.", url: "https://cline.bot" },
+      { id: "continue", name: "Continue", category: "programacion", priceModel: "free", short: "Asistente de código open-source.", full: "Extensión de VS Code que permite usar múltiples modelos de IA para autocompletado y chat.", limits: "Open-source y gratuito, compatible con modelos locales y en la nube.", url: "https://continue.dev" },
+      { id: "autogpt", name: "AutoGPT", category: "agentes", priceModel: "free", short: "Agente autónomo open-source.", full: "Agente de IA capaz de realizar tareas complejas de forma autónoma, como investigación, planificación y ejecución.", limits: "Open-source y gratuito, requiere configuración y claves de API.", url: "https://github.com/Significant-Gravitas/AutoGPT" },
+      { id: "crewai", name: "CrewAI", category: "agentes", priceModel: "free", short: "Framework de agentes colaborativos.", full: "Framework para crear equipos de agentes de IA que trabajan juntos en tareas complejas.", limits: "Open-source y gratuito, requiere Python y claves de API.", url: "https://www.crewai.com" },
+      { id: "langchain", name: "LangChain", category: "agentes", priceModel: "free", short: "Framework para construir aplicaciones con LLMs.", full: "Herramienta estándar para crear cadenas de prompts, agentes y sistemas RAG.", limits: "Open-source, uso gratuito.", url: "https://www.langchain.com" },
+      { id: "dify", name: "Dify", category: "agentes", priceModel: "free", short: "Plataforma visual para aplicaciones LLM.", full: "Entorno no-code/low-code para crear asistentes, RAG y agentes.", limits: "Plan gratuito: 200 mensajes/mes, open-source self-hosted.", url: "https://dify.ai" },
+      { id: "agentgpt", name: "AgentGPT", category: "agentes", priceModel: "free", short: "Agente autónomo en el navegador.", full: "Configura y ejecuta agentes de IA directamente en tu navegador sin instalación.", limits: "Gratuito, requiere API key propia.", url: "https://agentgpt.reworkd.ai" },
+      { id: "metagpt", name: "MetaGPT", category: "agentes", priceModel: "free", short: "Equipo de agentes para desarrollo de software.", full: "Simula un equipo completo de desarrollo que genera código, diagramas y documentación automáticamente.", limits: "Open-source gratuito.", url: "https://github.com/geekan/MetaGPT" },
+      { id: "goose", name: "Goose (Block)", category: "agentes", priceModel: "free", short: "Agente de código local open-source.", full: "Agente de IA de código abierto desarrollado por Block que ejecuta tareas de codificación localmente.", limits: "Completamente gratuito, se ejecuta en tu máquina.", url: "https://block.github.io/goose/" },
+      { id: "blinknew", name: "Blink.new", category: "agentes", priceModel: "free", short: "Plataforma de codificación agentic.", full: "Plataforma para construir aplicaciones de IA capaces de pensar, buscar en la web y ejecutar código.", limits: "Un mes gratis para nuevos usuarios.", url: "https://blink.new" },
+      
+      // ========== 🟢 GRATIS (YA EXISTENTES) ==========
+      { id: "dalle", name: "DALL·E (OpenAI)", category: "imagenes-video", priceModel: "free", short: "Generación de imágenes hiperrealistas.", full: "Crea imágenes a partir de texto con calidad profesional.", limits: "Créditos gratuitos mensuales (15-50) vía ChatGPT.", url: "https://openai.com/dall-e" },
+      { id: "leonardo", name: "Leonardo AI", category: "imagenes-video", priceModel: "free", short: "Generador de imágenes artísticas.", full: "Basado en Stable Diffusion, control avanzado de estilos.", limits: "~150 créditos/día renovables.", url: "https://leonardo.ai" },
       { id: "playground", name: "Playground AI", category: "imagenes-video", priceModel: "free", short: "Genera y edita imágenes rápidamente.", full: "Múltiples modelos, filtros y edición por capas.", limits: "1000 imágenes/día gratis.", url: "https://playgroundai.com" },
       { id: "pika", name: "Pika Labs", category: "imagenes-video", priceModel: "free", short: "Generación de video desde texto.", full: "Animación corta y efectos visuales.", limits: "Créditos limitados/día, videos 3-4 seg.", url: "https://pika.art" },
       { id: "elevenlabs", name: "ElevenLabs", category: "audio-musica", priceModel: "free", short: "Síntesis de voz ultra realista.", full: "TTS con entonación natural y múltiples idiomas.", limits: "10,000 caracteres/mes.", url: "https://elevenlabs.io" },
       { id: "suno", name: "Suno AI", category: "audio-musica", priceModel: "free", short: "Crea canciones completas con IA.", full: "Música original en múltiples géneros.", limits: "~50 créditos/día (10 canciones).", url: "https://suno.com" },
       { id: "adobe-podcast", name: "Adobe Podcast", category: "audio-musica", priceModel: "free", short: "Mejora audio y elimina ruido.", full: "Limpia grabaciones automáticamente.", limits: "Gratis con registro, límite de duración.", url: "https://podcast.adobe.com/enhance" },
-      { id: "codeium", name: "Codeium", category: "programacion", priceModel: "free", short: "Autocompletado de código gratuito.", full: "Alternativa a Copilot, 70+ lenguajes.", limits: "Gratis para individuos.", url: "https://codeium.com" },
-      { id: "phind", name: "Phind", category: "programacion", priceModel: "free", short: "Buscador para programadores.", full: "Búsqueda web + razonamiento técnico.", limits: "Uso ilimitado básico.", url: "https://www.phind.com" },
-      { id: "replit-ai", name: "Replit AI", category: "programacion", priceModel: "free", short: "IDE en la nube con IA.", full: "Asistente de código y despliegue.", limits: "Recursos limitados CPU/RAM.", url: "https://replit.com/ai" },
-      { id: "autogpt", name: "AutoGPT", category: "programacion", priceModel: "free", short: "Agentes autónomos de IA open-source.", full: "Ejecuta tareas complejas automáticamente sin intervención constante. Ideal para automatización de workflows, investigación y planificación. Totalmente open-source.", limits: "✅ Software 100% gratis y open-source. ⚠️ Requiere configuración técnica y API de OpenAI (con costo) o usar versiones sin API con modelos locales.", url: "https://github.com/significant-gravitas/autogpt" },
-      // Nueva categoría: Personajes 3D y Avatares (Gratis)
-      { id: "character-ai", name: "Character AI", category: "personajes-3d", priceModel: "free", short: "Crea personajes virtuales conversacionales.", full: "Genera personajes con personalidades únicas que responden de forma natural y emocional. Ideal para entretenimiento, educación y creatividad.", limits: "✅ Gratis: chats ilimitados, creación de personajes, biblioteca comunitaria. Premium opcional (c.ai+) para velocidad y features extra.", url: "https://character.ai" },
-      { id: "tripo3d", name: "Tripo 3D", category: "personajes-3d", priceModel: "free", short: "Genera modelos 3D desde texto o imagen.", full: "Tripo de VAST permite crear modelos 3D listos para animación o impresión en segundos. Ideal para diseñadores y desarrolladores de juegos.", limits: "Plan gratuito: 10 créditos diarios (un modelo 3D simple cuesta 1 crédito). Exportación en OBJ, FBX.", url: "https://www.tripo3d.ai" },
-      { id: "mixamo", name: "Mixamo (Adobe)", category: "personajes-3d", priceModel: "free", short: "Animaciones y auto-rigging para personajes 3D.", full: "Biblioteca gratuita de cientos de animaciones y sistema automático de esqueletos (rigging) para personajes 3D. Compatible con Blender, Unity, Unreal Engine.", limits: "Completamente gratuito, requiere cuenta Adobe (gratuita). Descargas ilimitadas.", url: "https://www.mixamo.com" },
-
-      // ====== 🟡 TRIAL ======
-      { id: "weup", name: "WeUp", category: "social-media", priceModel: "trial", short: "Generador de posts para LinkedIn.", full: "Crea contenido optimizado para LinkedIn con enfoque en conversión.", limits: "14 días trial. Después desde $147/mes.", url: "https://weup.io" },
-      { id: "cursor", name: "Cursor", category: "programacion", priceModel: "trial", short: "Editor de código con IA (VS Code fork).", full: "IDE moderno con autocompletado inteligente y chat.", limits: "~20-50 completions/mes free. Pro $20/mes.", url: "https://cursor.com" },
-      { id: "gamma", name: "Gamma.app", category: "productividad", priceModel: "trial", short: "Presentaciones y documentos con IA.", full: "Genera decks profesionales automáticamente.", limits: "400 créditos iniciales. Pago $10-20/mes.", url: "https://gamma.app" },
-      { id: "notebooklm", name: "NotebookLM", category: "investigacion", priceModel: "trial", short: "Analiza documentos con IA (Google).", full: "Sube PDFs y obtén resúmenes con fuentes.", limits: "50 fuentes/notebook, 500k palabras.", url: "https://notebooklm.google.com" },
-
-      // ====== 🔴 PAGAS ======
-      { id: "midjourney", name: "Midjourney", category: "imagenes-video", priceModel: "paid", short: "Imágenes artísticas de alta calidad.", full: "Líder en generación artística y fotorealismo.", limits: "Sin plan free. Desde $10/mes.", url: "https://midjourney.com" },
-      { id: "jasper", name: "Jasper", category: "escritura", priceModel: "paid", short: "Copywriting y contenido marketing.", full: "Especializado en SEO, blogs y anuncios.", limits: "7 días trial. Desde $49/mes.", url: "https://jasper.ai" },
-      { id: "runway", name: "Runway ML", category: "imagenes-video", priceModel: "paid", short: "Edición de video profesional con IA.", full: "Generación de video, rotoscopia, efectos.", limits: "Free muy limitado. Standard $15/mes.", url: "https://runwayml.com" },
-      { id: "copy-ai", name: "Copy.ai", category: "escritura", priceModel: "paid", short: "Contenido para e-commerce.", full: "Descripciones de producto, emails, ads.", limits: "2000 palabras/mes free. Desde $49/mes.", url: "https://copy.ai" }
+      { id: "character-ai", name: "Character AI", category: "personajes-3d", priceModel: "free", short: "Crea personajes virtuales conversacionales.", full: "Personajes con personalidades únicas.", limits: "Chats ilimitados, premium opcional.", url: "https://character.ai" },
+      { id: "tripo3d", name: "Tripo 3D", category: "personajes-3d", priceModel: "free", short: "Genera modelos 3D desde texto o imagen.", full: "Crea modelos 3D listos para animación o impresión.", limits: "10 créditos diarios (1 modelo = 1 crédito).", url: "https://www.tripo3d.ai" },
+      { id: "mixamo", name: "Mixamo (Adobe)", category: "personajes-3d", priceModel: "free", short: "Animaciones y auto-rigging para personajes 3D.", full: "Biblioteca de animaciones y sistema automático de esqueletos.", limits: "Completamente gratuito con cuenta Adobe.", url: "https://www.mixamo.com" },
+      
+      // ========== 🟡 TRIAL ==========
+      { id: "cursor-pro", name: "Cursor Pro", category: "programacion", priceModel: "trial", short: "Editor de código con IA.", full: "IDE moderno con autocompletado inteligente.", limits: "Versión gratuita limitada a 2000 autocompletados/mes.", url: "https://cursor.com" },
+      { id: "gamma", name: "Gamma.app", category: "productividad", priceModel: "trial", short: "Presentaciones con IA.", full: "Genera decks profesionales automáticamente.", limits: "400 créditos iniciales. Pago $10-20/mes.", url: "https://gamma.app" },
+      
+      // ========== 🔴 PAGAS ==========
+      { id: "midjourney", name: "Midjourney", category: "imagenes-video", priceModel: "paid", short: "Imágenes artísticas de alta calidad.", full: "Líder en generación artística.", limits: "Sin plan free. Desde $10/mes.", url: "https://midjourney.com" },
+      { id: "runway", name: "Runway ML", category: "imagenes-video", priceModel: "paid", short: "Edición de video profesional con IA.", full: "Generación de video, rotoscopia, efectos.", limits: "Free muy limitado. Standard $15/mes.", url: "https://runwayml.com" }
     ];
 
     const categories = {
@@ -502,45 +626,44 @@
       "imagenes-video": "🎨 Imágenes & Video",
       "audio-musica": "🎵 Audio & Música",
       programacion: "💻 Programación & Código",
-      "social-media": "📱 Redes Sociales",
       productividad: "⚡ Productividad",
-      investigacion: "🔍 Investigación",
-      escritura: "✍️ Escritura & Copy",
-      "personajes-3d": "🎭 3D & Personajes"
+      "personajes-3d": "🎭 3D & Personajes",
+      agentes: "🤖 Agentes Autónomos",
+      escritura: "✍️ Escritura & Copy"
     };
 
     const priceGroups = [
       { key: "free", title: "🟢 100% Gratuitas", subtitle: "Sin costo, sin tarjeta, uso ilimitado o con límites generosos." },
-      { key: "trial", title: "🟡 Prueba Gratuita (Trial)", subtitle: "Acceso temporal o con límites muy restrictivos. Requiere pago para uso continuo." },
-      { key: "paid", title: "🔴 De Pago", subtitle: "Sin plan gratuito viable. Inversión profesional para resultados premium." }
+      { key: "trial", title: "🟡 Prueba Gratuita (Trial)", subtitle: "Acceso temporal o con límites muy restrictivos." },
+      { key: "paid", title: "🔴 De Pago", subtitle: "Sin plan gratuito viable. Inversión profesional." }
     ];
 
     let currentFilters = { search: "", price: "all", category: "all" };
-    const app = document.getElementById('app');
+    let currentToolUrl = "";
+    let currentToolName = "";
 
-    function renderTools() {
+    const app = document.getElementById('app');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const iframeOverlay = document.getElementById('iframeOverlay');
+    const immersiveIframe = document.getElementById('immersiveIframe');
+    const iframeError = document.getElementById('iframeError');
+    const iframeTitle = document.getElementById('iframeTitle');
+
+    function renderTools() { 
       app.innerHTML = '';
       let totalVisible = 0;
-
       priceGroups.forEach(group => {
         const toolsInGroup = aiTools.filter(t => t.priceModel === group.key);
         if (toolsInGroup.length === 0) return;
-
         const section = document.createElement('section');
         section.className = 'section';
         section.id = `section-${group.key}`;
         section.innerHTML = `<h2>${group.title}</h2><p class="subtitle">${group.subtitle}</p><div id="container-${group.key}"></div>`;
         app.appendChild(section);
-
         const container = document.getElementById(`container-${group.key}`);
         const toolsByCategory = {};
-        toolsInGroup.forEach(tool => {
-          if (!toolsByCategory[tool.category]) toolsByCategory[tool.category] = [];
-          toolsByCategory[tool.category].push(tool);
-        });
-
+        toolsInGroup.forEach(tool => { if (!toolsByCategory[tool.category]) toolsByCategory[tool.category] = []; toolsByCategory[tool.category].push(tool); });
         let categoryVisibleCount = 0;
-
         Object.entries(toolsByCategory).forEach(([catKey, tools]) => {
           const catGroup = document.createElement('div');
           catGroup.className = 'category-group';
@@ -548,113 +671,75 @@
           catGroup.innerHTML = `<h3>${categories[catKey] || catKey}</h3><div class="grid"></div>`;
           const grid = catGroup.querySelector('.grid');
           let toolsInCatVisible = 0;
-
           tools.forEach(tool => {
-            const matchesSearch = !currentFilters.search || 
-              tool.name.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
-              tool.short.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
-              tool.full.toLowerCase().includes(currentFilters.search.toLowerCase());
-            
+            const matchesSearch = !currentFilters.search || tool.name.toLowerCase().includes(currentFilters.search.toLowerCase()) || tool.short.toLowerCase().includes(currentFilters.search.toLowerCase());
             const matchesPrice = currentFilters.price === 'all' || tool.priceModel === currentFilters.price;
             const matchesCategory = currentFilters.category === 'all' || tool.category === currentFilters.category;
-
             const card = document.createElement('div');
             card.className = 'card';
-            card.dataset.id = tool.id;
-            
-            if (!matchesSearch || !matchesPrice || !matchesCategory) {
-              card.classList.add('hidden');
-            } else {
-              toolsInCatVisible++;
-              categoryVisibleCount++;
-              totalVisible++;
-            }
-
+            if (!matchesSearch || !matchesPrice || !matchesCategory) card.classList.add('hidden');
+            else { toolsInCatVisible++; categoryVisibleCount++; totalVisible++; }
             const badgeClass = tool.priceModel;
-            card.innerHTML = `
-              <span class="badge ${badgeClass}">${tool.priceModel === 'free' ? 'Gratis' : tool.priceModel === 'trial' ? 'Trial' : 'Pago'}</span>
-              <h3>${tool.name}</h3>
-              <p>${tool.short}</p>
-              <button class="btn" data-id="${tool.id}">📖 Detalles</button>
-            `;
+            card.innerHTML = `<span class="badge ${badgeClass}">${tool.priceModel === 'free' ? 'Gratis' : tool.priceModel === 'trial' ? 'Trial' : 'Pago'}</span><h3>${tool.name}</h3><p>${tool.short}</p><div style="display: flex; gap: 0.5rem;"><button class="btn" data-id="${tool.id}">📖 Detalles</button><button class="btn btn-sm" data-immersive="${tool.id}">📥 Abrir inmersivo</button></div>`;
             grid.appendChild(card);
           });
-          
           if (toolsInCatVisible === 0) catGroup.classList.add('hidden');
           container.appendChild(catGroup);
         });
-
         if (categoryVisibleCount === 0) section.classList.add('hidden');
       });
-
-      const resultsCount = document.getElementById('resultsCount');
-      if (totalVisible === 0) {
-        resultsCount.innerHTML = '<div class="no-results">😕 No se encontraron herramientas</div>';
-      } else {
-        resultsCount.innerHTML = `Mostrando <strong>${totalVisible}</strong> de <strong>${aiTools.length}</strong> herramientas`;
-      }
-
-      document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('click', e => openModal(e.target.dataset.id));
-      });
+      document.getElementById('resultsCount').innerHTML = totalVisible === 0 ? '<div>😕 No se encontraron herramientas</div>' : `Mostrando <strong>${totalVisible}</strong> de <strong>${aiTools.length}</strong> herramientas`;
+      document.querySelectorAll('.btn[data-id]').forEach(btn => btn.addEventListener('click', e => openModal(e.target.dataset.id)));
+      document.querySelectorAll('.btn[data-immersive]').forEach(btn => btn.addEventListener('click', e => { const id = e.target.dataset.immersive; const tool = aiTools.find(t => t.id === id); if (tool) openImmersive(tool.url, tool.name); }));
     }
-
-    const overlay = document.getElementById('modalOverlay');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalCategory = document.getElementById('modalCategory');
-    const modalPrice = document.getElementById('modalPrice');
-    const modalDesc = document.getElementById('modalDesc');
-    const modalLimits = document.getElementById('modalLimits');
-    const modalLink = document.getElementById('modalLink');
-
-    const priceLabels = { free: "✅ 100% Gratis", trial: "🟡 Prueba Gratuita", paid: "🔴 De Pago" };
-    const priceClass = { free: "", trial: "trial", paid: "paid" };
 
     function openModal(id) {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
-      modalTitle.textContent = tool.name;
-      modalCategory.textContent = categories[tool.category] || tool.category;
-      modalPrice.textContent = priceLabels[tool.priceModel];
-      modalPrice.className = `tag price-tag ${priceClass[tool.priceModel]}`;
-      modalDesc.textContent = tool.full;
-      modalLimits.innerHTML = `<strong>ℹ️ Condiciones:</strong><br>${tool.limits}`;
-      modalLink.href = tool.url;
-      overlay.classList.add('active');
+      currentToolUrl = tool.url;
+      currentToolName = tool.name;
+      document.getElementById('modalTitle').textContent = tool.name;
+      document.getElementById('modalCategory').textContent = categories[tool.category] || tool.category;
+      const priceLabel = { free: "✅ 100% Gratis", trial: "🟡 Prueba Gratuita", paid: "🔴 De Pago" }[tool.priceModel];
+      const priceClass = { free: "", trial: "trial", paid: "paid" }[tool.priceModel];
+      const modalPrice = document.getElementById('modalPrice');
+      modalPrice.textContent = priceLabel;
+      modalPrice.className = `tag price-tag ${priceClass}`;
+      document.getElementById('modalDesc').textContent = tool.full;
+      document.getElementById('modalLimits').innerHTML = `<strong>ℹ️ Condiciones:</strong><br>${tool.limits}`;
+      document.getElementById('modalLink').href = tool.url;
+      modalOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
-      overlay.classList.remove('active');
-      document.body.style.overflow = '';
+    function closeModal() { modalOverlay.classList.remove('active'); document.body.style.overflow = ''; }
+    function openNewTab() { if (currentToolUrl) window.open(currentToolUrl, '_blank'); }
+    function openNewWindow() { if (currentToolUrl) window.open(currentToolUrl, '_blank', 'width=1200,height=800,resizable=yes'); }
+    function openImmersive(url, name) {
+      iframeTitle.textContent = `📌 ${name} - Vista inmersiva`;
+      immersiveIframe.src = url;
+      iframeError.style.display = 'none';
+      immersiveIframe.style.display = 'block';
+      immersiveIframe.onload = () => { iframeError.style.display = 'none'; };
+      immersiveIframe.onerror = () => { iframeError.style.display = 'block'; immersiveIframe.style.display = 'none'; };
+      setTimeout(() => { try { if (immersiveIframe.contentDocument && immersiveIframe.contentDocument.location.href === 'about:blank') throw new Error(); } catch(e) { iframeError.style.display = 'block'; immersiveIframe.style.display = 'none'; } }, 2000);
+      iframeOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
     }
+    function closeImmersive() { iframeOverlay.classList.remove('active'); immersiveIframe.src = 'about:blank'; document.body.style.overflow = ''; }
 
-    document.getElementById('searchInput').addEventListener('input', e => {
-      currentFilters.search = e.target.value.trim();
-      renderTools();
-    });
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentFilters[btn.dataset.filter] = btn.dataset.value;
-        document.querySelectorAll(`.filter-btn[data-filter="${btn.dataset.filter}"]`).forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderTools();
-      });
-    });
-
-    document.getElementById('clearFilters').addEventListener('click', () => {
-      currentFilters = { search: "", price: "all", category: "all" };
-      document.getElementById('searchInput').value = "";
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.value === 'all');
-      });
-      renderTools();
-    });
-
+    document.getElementById('openNewTab').addEventListener('click', openNewTab);
+    document.getElementById('openNewWindow').addEventListener('click', openNewWindow);
+    document.getElementById('openImmersive').addEventListener('click', () => { if (currentToolUrl) openImmersive(currentToolUrl, currentToolName); closeModal(); });
     document.querySelector('.close-btn').addEventListener('click', closeModal);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('closeIframe').addEventListener('click', closeImmersive);
+    iframeOverlay.addEventListener('click', e => { if (e.target === iframeOverlay) closeImmersive(); });
+
+    document.getElementById('searchInput').addEventListener('input', e => { currentFilters.search = e.target.value.trim(); renderTools(); });
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => { currentFilters[btn.dataset.filter] = btn.dataset.value; document.querySelectorAll(`.filter-btn[data-filter="${btn.dataset.filter}"]`).forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderTools(); }));
+    document.getElementById('clearFilters').addEventListener('click', () => { currentFilters = { search: "", price: "all", category: "all" }; document.getElementById('searchInput').value = ""; document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.value === 'all')); renderTools(); });
 
     renderTools();
   </script>
