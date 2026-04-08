@@ -1,1 +1,662 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Directorio de IAs: Gratis • Trial • Pagas</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --modal-bg: #0b1120;
+      --border: #334155;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2);
+      --badge-free: #22c55e;
+      --badge-trial: #f59e0b;
+      --badge-paid: #ef4444;
+      --filter-active: #38bdf8;
+      --filter-bg: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    header { text-align: center; margin-bottom: 2rem; }
+    header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    header p { color: var(--text-muted); max-width: 650px; margin: 0 auto; }
+
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .legend-dot.free { background: var(--badge-free); }
+    .legend-dot.trial { background: var(--badge-trial); }
+    .legend-dot.paid { background: var(--badge-paid); }
+
+    .controls {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .search-box {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 0.9rem 1.2rem 0.9rem 3rem;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--card-bg);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    }
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .filter-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-right: 0.3rem;
+    }
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      background: var(--filter-bg);
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .filter-btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .filter-btn.active {
+      background: var(--filter-active);
+      color: #0f172a;
+      border-color: var(--filter-active);
+      font-weight: 600;
+    }
+    .clear-filters {
+      padding: 0.5rem 1rem;
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-filters:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .results-count {
+      text-align: center;
+      color: var(--text-muted);
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    .results-count strong {
+      color: var(--accent);
+    }
+
+    .section { 
+      margin-bottom: 3.5rem;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 1rem;
+    }
+    .section.hidden { display: none; }
+    .section h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+    .section .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .category-group { margin-bottom: 2.5rem; }
+    .category-group.hidden { display: none; }
+    .category-group h3 {
+      font-size: 1.2rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .category-group h3:first-child { margin-top: 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+      position: relative;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: 0 8px 12px rgba(0,0,0,0.4); 
+    }
+    .card.hidden { 
+      display: none; 
+    }
+    .card h3 { 
+      font-size: 1.25rem; 
+      margin-bottom: 0.5rem; 
+      color: var(--accent);
+      padding-right: 5rem;
+    }
+    .card p { 
+      color: var(--text-muted); 
+      margin-bottom: 1rem; 
+      font-size: 0.95rem; 
+    }
+
+    .badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge.free { background: var(--badge-free); color: #052e16; }
+    .badge.trial { background: var(--badge-trial); color: #431407; }
+    .badge.paid { background: var(--badge-paid); color: #450a0a; }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--modal-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 620px;
+      width: 100%;
+      padding: 2rem;
+      position: relative;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal h2 { color: var(--accent); margin-bottom: 0.5rem; }
+    .modal .tags { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .modal .tag {
+      background: var(--border);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .modal .price-tag {
+      background: var(--badge-free);
+      color: #052e16;
+      font-weight: 600;
+    }
+    .modal .price-tag.trial { background: var(--badge-trial); color: #431407; }
+    .modal .price-tag.paid { background: var(--badge-paid); color: #450a0a; }
+
+    .modal p { margin-bottom: 1rem; }
+    .modal .limits {
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 3px solid var(--accent);
+      padding: 0.8rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .modal .link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .modal .link:hover { text-decoration: underline; }
+
+    .close-btn {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .close-btn:hover { color: var(--accent); }
+
+    .tip-box {
+      background: #111827;
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 3rem auto;
+      max-width: 800px;
+    }
+    .tip-box h3 { color: var(--accent); margin-bottom: 0.5rem; }
+    .tip-box code {
+      background: #1e293b;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.9em;
+    }
+    .tip-box pre {
+      background: #0b1120;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 0.8rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .modal { padding: 1.5rem; }
+      header h1 { font-size: 1.8rem; }
+      .legend { flex-direction: column; align-items: center; gap: 0.5rem; }
+      .filters { flex-direction: column; }
+      .filter-group { width: 100%; justify-content: center; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🤖 Directorio de IAs</h1>
+    <p>Herramientas de inteligencia artificial organizadas por modelo de acceso: <strong>Gratis</strong> • <strong>Trial</strong> • <strong>Pagas</strong>. Información actualizada a 2024-2026.</p>
+    
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot free"></span> 100% Gratis</div>
+      <div class="legend-item"><span class="legend-dot trial"></span> Prueba gratuita</div>
+      <div class="legend-item"><span class="legend-dot paid"></span> De pago</div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Buscar herramientas por nombre, categoría o descripción..." autocomplete="off">
+    </div>
+    
+    <div class="filters">
+      <div class="filter-group">
+        <span class="filter-label">💰 Precio:</span>
+        <button class="filter-btn active" data-filter="price" data-value="all">Todas</button>
+        <button class="filter-btn" data-filter="price" data-value="free">🟢 Gratis</button>
+        <button class="filter-btn" data-filter="price" data-value="trial">🟡 Trial</button>
+        <button class="filter-btn" data-filter="price" data-value="paid">🔴 Pagas</button>
+      </div>
+      
+      <div class="filter-group">
+        <span class="filter-label">📂 Categoría:</span>
+        <button class="filter-btn active" data-filter="category" data-value="all">Todas</button>
+        <button class="filter-btn" data-filter="category" data-value="general">🌐 Generales</button>
+        <button class="filter-btn" data-filter="category" data-value="programacion">💻 Code</button>
+        <button class="filter-btn" data-filter="category" data-value="imagenes-video">🎨 Imágenes</button>
+        <button class="filter-btn" data-filter="category" data-value="audio-musica">🎵 Audio</button>
+        <button class="filter-btn" data-filter="category" data-value="escritura">✍️ Escritura</button>
+        <button class="filter-btn" data-filter="category" data-value="productividad">⚡ Productividad</button>
+        <button class="filter-btn" data-filter="category" data-value="personajes-3d">🎭 3D/Personajes</button>
+      </div>
+      
+      <button class="clear-filters" id="clearFilters">🔄 Limpiar filtros</button>
+    </div>
+    
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+
+  <main id="app"></main>
+
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="close-btn" aria-label="Cerrar modal">&times;</button>
+      <h2 id="modalTitle"></h2>
+      <div class="tags">
+        <span class="tag" id="modalCategory"></span>
+        <span class="tag price-tag" id="modalPrice"></span>
+      </div>
+      <p id="modalDesc"></p>
+      <div class="limits" id="modalLimits"></div>
+      <a href="#" target="_blank" rel="noopener" class="link" id="modalLink">🌐 Visitar sitio oficial</a>
+    </div>
+  </div>
+
+  <section class="tip-box">
+    <h3>💡 Tip: Cómo agregar nuevas IAs rápidamente</h3>
+    <p>Para añadir una herramienta, busca <code>aiTools</code> en el script y agrega:</p>
+    <pre>{ 
+  id: "nombre-unico", 
+  name: "Nombre Visible", 
+  category: "general", 
+  priceModel: "free",
+  short: "Descripción breve.", 
+  full: "Descripción completa.", 
+  limits: "Límites del plan.", 
+  url: "https://sitio.com" 
+},</pre>
+  </section>
+
+  <footer>
+    <p>⚠️ Los planes de IA cambian frecuentemente. Verifica siempre la página oficial.</p>
+  </footer>
+
+  <script>
+    const aiTools = [
+      // ====== 🟢 GRATIS ======
+      { id: "chatgpt", name: "ChatGPT", category: "general", priceModel: "free", short: "Asistente conversacional líder de OpenAI.", full: "Modelo multimodal capaz de generar texto, analizar documentos, escribir código y crear imágenes. La versión gratuita usa GPT-4o mini.", limits: "Límite de mensajes variable, acceso a DALL-E con límites diarios.", url: "https://chat.openai.com" },
+      { id: "gemini", name: "Gemini (Google)", category: "general", priceModel: "free", short: "IA multimodal integrada en el ecosistema Google.", full: "Fuerte en razonamiento, búsqueda web en tiempo real, integración con Drive/Gmail y análisis de imágenes.", limits: "Uso gratuito generoso, colas en horas pico.", url: "https://gemini.google.com" },
+      { id: "copilot", name: "Microsoft Copilot", category: "general", priceModel: "free", short: "Asistente con GPT-4 y DALL-E 3 integrado.", full: "Combina chat, generación de imágenes, búsqueda web y resumen de documentos.", limits: "~30 turnos/conversación, imágenes con marca de agua.", url: "https://copilot.microsoft.com" },
+      { id: "claude", name: "Claude (Anthropic)", category: "general", priceModel: "free", short: "IA enfocada en razonamiento profundo y seguridad.", full: "Destaca en análisis largo, redacción ética y programación. Incluye Claude Haiku (ultrarrápido).", limits: "Límite diario ~20-40 mensajes.", url: "https://claude.ai" },
+      { id: "perplexity", name: "Perplexity AI", category: "general", priceModel: "free", short: "Motor de búsqueda conversacional con fuentes.", full: "Búsqueda web en tiempo real con respuestas citadas. Ideal para investigación.", limits: "Búsquedas ilimitadas básicas, 5 consultas Pro/día.", url: "https://www.perplexity.ai" },
+      { id: "meta-ai", name: "Meta AI (Llama)", category: "general", priceModel: "free", short: "IA de Meta en WhatsApp, Instagram y web.", full: "Basada en Llama 3, chat y generación de imágenes integrada.", limits: "Disponibilidad por región, límites en imágenes.", url: "https://www.meta.ai" },
+      { id: "mistral", name: "Mistral AI", category: "general", priceModel: "free", short: "Modelo europeo open-source eficiente.", full: "Razonamiento lógico, programación y generación de texto.", limits: "Acceso gratuito con registro, límites por hora.", url: "https://chat.mistral.ai" },
+      { id: "deepseek", name: "DeepSeek", category: "general", priceModel: "free", short: "IA open-source para programación.", full: "Modelo eficiente especializado en código y razonamiento técnico.", limits: "Gratuito para uso personal, API generosa.", url: "https://deepseek.com" },
+      { id: "qwen", name: "Qwen (Alibaba)", category: "general", priceModel: "free", short: "Modelo de lenguaje avanzado de Alibaba.", full: "Qwen 2.5 es una familia de modelos con capacidades multimodales, razonamiento, programación y contexto de hasta 1M tokens. Versión gratuita accesible vía web y app.", limits: "Uso gratuito con límites diarios de mensajes. API con costo adicional.", url: "https://chat.qwen.ai" },
+      { id: "dalle", name: "DALL·E (OpenAI)", category: "imagenes-video", priceModel: "free", short: "Generación de imágenes hiperrealistas.", full: "Crea imágenes a partir de texto con calidad profesional. Integrado en ChatGPT o vía API. Ideal para diseño, marketing y arte conceptual.", limits: "✅ Créditos gratuitos mensuales (15-50). Usuarios ChatGPT free pueden generar imágenes. API con costo por imagen (~$0.016-0.02).", url: "https://openai.com/dall-e" },
+      { id: "synthesia", name: "Synthesia", category: "imagenes-video", priceModel: "free", short: "Videos con avatares IA y voces naturales.", full: "Crea videos profesionales con avatares generados por IA en múltiples idiomas. Perfecto para presentaciones empresariales, training y marketing.", limits: "✅ Plan Free: 3 min/mes, 1 export con marca de agua. Planes pagos desde $18-20/mes para uso profesional.", url: "https://www.synthesia.io" },
+      { id: "leonardo", name: "Leonardo AI", category: "imagenes-video", priceModel: "free", short: "Generador de imágenes artísticas.", full: "Basado en Stable Diffusion, control avanzado de estilos y resolución.", limits: "~150 créditos/día renovables.", url: "https://leonardo.ai" },
+      { id: "playground", name: "Playground AI", category: "imagenes-video", priceModel: "free", short: "Genera y edita imágenes rápidamente.", full: "Múltiples modelos, filtros y edición por capas.", limits: "1000 imágenes/día gratis.", url: "https://playgroundai.com" },
+      { id: "pika", name: "Pika Labs", category: "imagenes-video", priceModel: "free", short: "Generación de video desde texto.", full: "Animación corta y efectos visuales.", limits: "Créditos limitados/día, videos 3-4 seg.", url: "https://pika.art" },
+      { id: "elevenlabs", name: "ElevenLabs", category: "audio-musica", priceModel: "free", short: "Síntesis de voz ultra realista.", full: "TTS con entonación natural y múltiples idiomas.", limits: "10,000 caracteres/mes.", url: "https://elevenlabs.io" },
+      { id: "suno", name: "Suno AI", category: "audio-musica", priceModel: "free", short: "Crea canciones completas con IA.", full: "Música original en múltiples géneros.", limits: "~50 créditos/día (10 canciones).", url: "https://suno.com" },
+      { id: "adobe-podcast", name: "Adobe Podcast", category: "audio-musica", priceModel: "free", short: "Mejora audio y elimina ruido.", full: "Limpia grabaciones automáticamente.", limits: "Gratis con registro, límite de duración.", url: "https://podcast.adobe.com/enhance" },
+      { id: "codeium", name: "Codeium", category: "programacion", priceModel: "free", short: "Autocompletado de código gratuito.", full: "Alternativa a Copilot, 70+ lenguajes.", limits: "Gratis para individuos.", url: "https://codeium.com" },
+      { id: "phind", name: "Phind", category: "programacion", priceModel: "free", short: "Buscador para programadores.", full: "Búsqueda web + razonamiento técnico.", limits: "Uso ilimitado básico.", url: "https://www.phind.com" },
+      { id: "replit-ai", name: "Replit AI", category: "programacion", priceModel: "free", short: "IDE en la nube con IA.", full: "Asistente de código y despliegue.", limits: "Recursos limitados CPU/RAM.", url: "https://replit.com/ai" },
+      { id: "autogpt", name: "AutoGPT", category: "programacion", priceModel: "free", short: "Agentes autónomos de IA open-source.", full: "Ejecuta tareas complejas automáticamente sin intervención constante. Ideal para automatización de workflows, investigación y planificación. Totalmente open-source.", limits: "✅ Software 100% gratis y open-source. ⚠️ Requiere configuración técnica y API de OpenAI (con costo) o usar versiones sin API con modelos locales.", url: "https://github.com/significant-gravitas/autogpt" },
+      // Nueva categoría: Personajes 3D y Avatares (Gratis)
+      { id: "character-ai", name: "Character AI", category: "personajes-3d", priceModel: "free", short: "Crea personajes virtuales conversacionales.", full: "Genera personajes con personalidades únicas que responden de forma natural y emocional. Ideal para entretenimiento, educación y creatividad.", limits: "✅ Gratis: chats ilimitados, creación de personajes, biblioteca comunitaria. Premium opcional (c.ai+) para velocidad y features extra.", url: "https://character.ai" },
+      { id: "tripo3d", name: "Tripo 3D", category: "personajes-3d", priceModel: "free", short: "Genera modelos 3D desde texto o imagen.", full: "Tripo de VAST permite crear modelos 3D listos para animación o impresión en segundos. Ideal para diseñadores y desarrolladores de juegos.", limits: "Plan gratuito: 10 créditos diarios (un modelo 3D simple cuesta 1 crédito). Exportación en OBJ, FBX.", url: "https://www.tripo3d.ai" },
+      { id: "mixamo", name: "Mixamo (Adobe)", category: "personajes-3d", priceModel: "free", short: "Animaciones y auto-rigging para personajes 3D.", full: "Biblioteca gratuita de cientos de animaciones y sistema automático de esqueletos (rigging) para personajes 3D. Compatible con Blender, Unity, Unreal Engine.", limits: "Completamente gratuito, requiere cuenta Adobe (gratuita). Descargas ilimitadas.", url: "https://www.mixamo.com" },
+
+      // ====== 🟡 TRIAL ======
+      { id: "weup", name: "WeUp", category: "social-media", priceModel: "trial", short: "Generador de posts para LinkedIn.", full: "Crea contenido optimizado para LinkedIn con enfoque en conversión.", limits: "14 días trial. Después desde $147/mes.", url: "https://weup.io" },
+      { id: "cursor", name: "Cursor", category: "programacion", priceModel: "trial", short: "Editor de código con IA (VS Code fork).", full: "IDE moderno con autocompletado inteligente y chat.", limits: "~20-50 completions/mes free. Pro $20/mes.", url: "https://cursor.com" },
+      { id: "gamma", name: "Gamma.app", category: "productividad", priceModel: "trial", short: "Presentaciones y documentos con IA.", full: "Genera decks profesionales automáticamente.", limits: "400 créditos iniciales. Pago $10-20/mes.", url: "https://gamma.app" },
+      { id: "notebooklm", name: "NotebookLM", category: "investigacion", priceModel: "trial", short: "Analiza documentos con IA (Google).", full: "Sube PDFs y obtén resúmenes con fuentes.", limits: "50 fuentes/notebook, 500k palabras.", url: "https://notebooklm.google.com" },
+
+      // ====== 🔴 PAGAS ======
+      { id: "midjourney", name: "Midjourney", category: "imagenes-video", priceModel: "paid", short: "Imágenes artísticas de alta calidad.", full: "Líder en generación artística y fotorealismo.", limits: "Sin plan free. Desde $10/mes.", url: "https://midjourney.com" },
+      { id: "jasper", name: "Jasper", category: "escritura", priceModel: "paid", short: "Copywriting y contenido marketing.", full: "Especializado en SEO, blogs y anuncios.", limits: "7 días trial. Desde $49/mes.", url: "https://jasper.ai" },
+      { id: "runway", name: "Runway ML", category: "imagenes-video", priceModel: "paid", short: "Edición de video profesional con IA.", full: "Generación de video, rotoscopia, efectos.", limits: "Free muy limitado. Standard $15/mes.", url: "https://runwayml.com" },
+      { id: "copy-ai", name: "Copy.ai", category: "escritura", priceModel: "paid", short: "Contenido para e-commerce.", full: "Descripciones de producto, emails, ads.", limits: "2000 palabras/mes free. Desde $49/mes.", url: "https://copy.ai" }
+    ];
+
+    const categories = {
+      general: "🌐 Generales / Multimodales",
+      "imagenes-video": "🎨 Imágenes & Video",
+      "audio-musica": "🎵 Audio & Música",
+      programacion: "💻 Programación & Código",
+      "social-media": "📱 Redes Sociales",
+      productividad: "⚡ Productividad",
+      investigacion: "🔍 Investigación",
+      escritura: "✍️ Escritura & Copy",
+      "personajes-3d": "🎭 3D & Personajes"
+    };
+
+    const priceGroups = [
+      { key: "free", title: "🟢 100% Gratuitas", subtitle: "Sin costo, sin tarjeta, uso ilimitado o con límites generosos." },
+      { key: "trial", title: "🟡 Prueba Gratuita (Trial)", subtitle: "Acceso temporal o con límites muy restrictivos. Requiere pago para uso continuo." },
+      { key: "paid", title: "🔴 De Pago", subtitle: "Sin plan gratuito viable. Inversión profesional para resultados premium." }
+    ];
+
+    let currentFilters = { search: "", price: "all", category: "all" };
+    const app = document.getElementById('app');
+
+    function renderTools() {
+      app.innerHTML = '';
+      let totalVisible = 0;
+
+      priceGroups.forEach(group => {
+        const toolsInGroup = aiTools.filter(t => t.priceModel === group.key);
+        if (toolsInGroup.length === 0) return;
+
+        const section = document.createElement('section');
+        section.className = 'section';
+        section.id = `section-${group.key}`;
+        section.innerHTML = `<h2>${group.title}</h2><p class="subtitle">${group.subtitle}</p><div id="container-${group.key}"></div>`;
+        app.appendChild(section);
+
+        const container = document.getElementById(`container-${group.key}`);
+        const toolsByCategory = {};
+        toolsInGroup.forEach(tool => {
+          if (!toolsByCategory[tool.category]) toolsByCategory[tool.category] = [];
+          toolsByCategory[tool.category].push(tool);
+        });
+
+        let categoryVisibleCount = 0;
+
+        Object.entries(toolsByCategory).forEach(([catKey, tools]) => {
+          const catGroup = document.createElement('div');
+          catGroup.className = 'category-group';
+          catGroup.id = `cat-${group.key}-${catKey}`;
+          catGroup.innerHTML = `<h3>${categories[catKey] || catKey}</h3><div class="grid"></div>`;
+          const grid = catGroup.querySelector('.grid');
+          let toolsInCatVisible = 0;
+
+          tools.forEach(tool => {
+            const matchesSearch = !currentFilters.search || 
+              tool.name.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
+              tool.short.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
+              tool.full.toLowerCase().includes(currentFilters.search.toLowerCase());
+            
+            const matchesPrice = currentFilters.price === 'all' || tool.priceModel === currentFilters.price;
+            const matchesCategory = currentFilters.category === 'all' || tool.category === currentFilters.category;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = tool.id;
+            
+            if (!matchesSearch || !matchesPrice || !matchesCategory) {
+              card.classList.add('hidden');
+            } else {
+              toolsInCatVisible++;
+              categoryVisibleCount++;
+              totalVisible++;
+            }
+
+            const badgeClass = tool.priceModel;
+            card.innerHTML = `
+              <span class="badge ${badgeClass}">${tool.priceModel === 'free' ? 'Gratis' : tool.priceModel === 'trial' ? 'Trial' : 'Pago'}</span>
+              <h3>${tool.name}</h3>
+              <p>${tool.short}</p>
+              <button class="btn" data-id="${tool.id}">📖 Detalles</button>
+            `;
+            grid.appendChild(card);
+          });
+          
+          if (toolsInCatVisible === 0) catGroup.classList.add('hidden');
+          container.appendChild(catGroup);
+        });
+
+        if (categoryVisibleCount === 0) section.classList.add('hidden');
+      });
+
+      const resultsCount = document.getElementById('resultsCount');
+      if (totalVisible === 0) {
+        resultsCount.innerHTML = '<div class="no-results">😕 No se encontraron herramientas</div>';
+      } else {
+        resultsCount.innerHTML = `Mostrando <strong>${totalVisible}</strong> de <strong>${aiTools.length}</strong> herramientas`;
+      }
+
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', e => openModal(e.target.dataset.id));
+      });
+    }
+
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalPrice = document.getElementById('modalPrice');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalLimits = document.getElementById('modalLimits');
+    const modalLink = document.getElementById('modalLink');
+
+    const priceLabels = { free: "✅ 100% Gratis", trial: "🟡 Prueba Gratuita", paid: "🔴 De Pago" };
+    const priceClass = { free: "", trial: "trial", paid: "paid" };
+
+    function openModal(id) {
+      const tool = aiTools.find(t => t.id === id);
+      if (!tool) return;
+      modalTitle.textContent = tool.name;
+      modalCategory.textContent = categories[tool.category] || tool.category;
+      modalPrice.textContent = priceLabels[tool.priceModel];
+      modalPrice.className = `tag price-tag ${priceClass[tool.priceModel]}`;
+      modalDesc.textContent = tool.full;
+      modalLimits.innerHTML = `<strong>ℹ️ Condiciones:</strong><br>${tool.limits}`;
+      modalLink.href = tool.url;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      currentFilters.search = e.target.value.trim();
+      renderTools();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFilters[btn.dataset.filter] = btn.dataset.value;
+        document.querySelectorAll(`.filter-btn[data-filter="${btn.dataset.filter}"]`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTools();
+      });
+    });
+
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      currentFilters = { search: "", price: "all", category: "all" };
+      document.getElementById('searchInput').value = "";
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === 'all');
+      });
+      renderTools();
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    renderTools();
+  </script>
+</body>
+</html>
